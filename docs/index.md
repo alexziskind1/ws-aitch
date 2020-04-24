@@ -14,3 +14,15 @@ layout: default
   {% capture content %}{% include_relative /chapters/chapter2.md %}{% endcapture %}
   {{ content | markdownify }}
 </div>
+<div class="chapter">
+  {% capture content %}{% include_relative /chapters/chapter3.md %}{% endcapture %}
+  {{ content | markdownify }}
+</div>
+<div class="chapter">
+  {% capture content %}{% include_relative /chapters/chapter4.md %}{% endcapture %}
+  {{ content | markdownify }}
+</div>
+<div class="chapter">
+  {% capture content %}{% include_relative /chapters/chapter5.md %}{% endcapture %}
+  {{ content | markdownify }}
+</div>
