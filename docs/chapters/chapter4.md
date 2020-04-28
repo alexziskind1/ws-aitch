@@ -1,30 +1,19 @@
 ## Layer Cake
 
-
-
-
 <div class="nsw"></div>
 
 #### Overview of topics covered
 
-* The Layers
-* Popup isolation
-
-
-
-
-
-
-
+- The Layers
+- Popup isolation
 
 <div class="nsw"></div>
 
 ### Lesson 4.1: The layers
 
-The idea behind this approach is to layer UI elements in front of the normal application navigation flow to have app-wide access to a centrally managed popup dialogs that are dynamically populated by content. There's quite a bit to unpack there, so we're going to take it one step at a time. Let's start with the layers themselves. 
+The idea behind this approach is to layer UI elements in front of the normal application navigation flow to have app-wide access to a centrally managed popup dialogs that are dynamically populated by content. There's quite a bit to unpack there, so we're going to take it one step at a time. Let's start with the layers themselves.
 
->Layering is not a novel idea but hints at doing layering have been mentioned in several NativeScript forums, notably from Shiva Prasad. You can take a look at it here: [https://discourse.nativescript.org/t/how-to-layer-items-in-nativescript/3298](https://discourse.nativescript.org/t/how-to-layer-items-in-nativescript/3298)
-
+> Layering is not a novel idea but hints at doing layering have been mentioned in several NativeScript forums, notably from Shiva Prasad. You can take a look at it here: [https://discourse.nativescript.org/t/how-to-layer-items-in-nativescript/3298](https://discourse.nativescript.org/t/how-to-layer-items-in-nativescript/3298)
 
 #### What you're doing
 
@@ -59,18 +48,18 @@ We also need an object to pass popup parameters and popup results back and forth
 ```typescript
 // view.service.ts
 interface IViewLayer {
-    open: boolean;
-    cmpType?: any;
-    cmpProps?: any;
-    /**
-     * allow results to be passed back to the caller
-     */
-    result?: any;
-    /**
-     * allow custom height to be passed in
-     */
-    height?: number;
-  }
+  open: boolean;
+  cmpType?: any;
+  cmpProps?: any;
+  /**
+   * allow results to be passed back to the caller
+   */
+  result?: any;
+  /**
+   * allow custom height to be passed in
+   */
+  height?: number;
+}
 ```
 
 Add the `togglePopup$` observable to the `ViewService`
@@ -102,80 +91,66 @@ Now create the popup component itself
 ```
 
 ```typescript
-
 export class PopupViewComponent extends BaseComponent {
-    @ViewChild("content", {
-        read: ViewContainerRef,
-        static: false
-    })
-    vcRef: ViewContainerRef;
+  @ViewChild("content", {
+    read: ViewContainerRef,
+    static: false,
+  })
+  vcRef: ViewContainerRef;
 
-    popupHeight: number;
-    private _component: ComponentRef<any>;
-    private _popupViewContainer: GridLayout;
-    private _defaultHeight = screen.mainScreen.heightDIPs - 125;
+  popupHeight: number;
+  private _component: ComponentRef<any>;
+  private _popupViewContainer: GridLayout;
+  private _defaultHeight = screen.mainScreen.heightDIPs - 125;
 
-    constructor(
-        private _resolver: ComponentFactoryResolver,
-        private _viewService: ViewService
-    ) {
-        super();
-        this.popupHeight = this._defaultHeight;
-    }
+  constructor(
+    private _resolver: ComponentFactoryResolver,
+    private _viewService: ViewService
+  ) {
+    super();
+    this.popupHeight = this._defaultHeight;
+  }
 
-    ngOnInit() {
-        this._viewService.togglePopup$
-            .pipe(takeUntil(this.destroy$))
-            .subscribe(options => {
-                if (options.open) {
-                    this.popupHeight = options.height || this._defaultHeight;
-                    if (options.cmpType) {
-                        const compFactory = this._resolver.resolveComponentFactory(
-                            options.cmpType
-                        );
-                        this._component = this.vcRef.createComponent(compFactory);
-                    }
-                    if (options.cmpProps) {
-                        for (const key in options.cmpProps) {
-                            this._component.instance[key] =
-                                options.cmpProps[key];
-                        }
-                    }
-                    this._toggleDisplay(true);
-                } else if (this._component) {
-                    this._toggleDisplay(false);
-                }
-            });
-    }
-
-    loadedContainer(args) {
-        this._popupViewContainer = args.object;
-    }
-
-    private _toggleDisplay(
-        show: boolean,
-        ignoreReset?: boolean
-    ) {
-        if (show) {
-            if (!ignoreReset) {
-                this._popupViewContainer.visibility = "visible";
+  ngOnInit() {
+    this._viewService.togglePopup$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((options) => {
+        if (options.open) {
+          this.popupHeight = options.height || this._defaultHeight;
+          if (options.cmpType) {
+            const compFactory = this._resolver.resolveComponentFactory(
+              options.cmpType
+            );
+            this._component = this.vcRef.createComponent(compFactory);
+          }
+          if (options.cmpProps) {
+            for (const key in options.cmpProps) {
+              this._component.instance[key] = options.cmpProps[key];
             }
-            this._popupViewContainer.opacity = 1;
-        } else {
-          this._popupViewContainer.visibility = "collapse";
+          }
+          this._toggleDisplay(true);
+        } else if (this._component) {
+          this._toggleDisplay(false);
         }
+      });
+  }
+
+  loadedContainer(args) {
+    this._popupViewContainer = args.object;
+  }
+
+  private _toggleDisplay(show: boolean, ignoreReset?: boolean) {
+    if (show) {
+      if (!ignoreReset) {
+        this._popupViewContainer.visibility = "visible";
+      }
+      this._popupViewContainer.opacity = 1;
+    } else {
+      this._popupViewContainer.visibility = "collapse";
     }
+  }
 }
 ```
-
-
-
-
-
-
-
-
-
 
 <div class="nsw"></div>
 
@@ -184,7 +159,6 @@ export class PopupViewComponent extends BaseComponent {
 ##### Requirements
 
 Open the popup from `ItemsComponent`.
-
 
 ##### Tips
 
@@ -197,7 +171,7 @@ Open the popup from `ItemsComponent`.
 
 ###### Step 1
 
-Add a clickable area to the popup component that will trigger the popup closing 
+Add a clickable area to the popup component that will trigger the popup closing
 
 ```xml
 <!-- popup-view.component.html -->
@@ -217,15 +191,6 @@ Add a close function
 
 <div class="solution-end"></div>
 
-
-
-
-
-
-
-
-
-
 <div class="nsw"></div>
 
 ### Lesson 4.3: Using the popup
@@ -241,31 +206,31 @@ We need to create some content for the popup to display dynamically. So we'll cr
 <StackLayout>
     <Label [text]="title" class="t-30 c-black text-center"></Label>
     <Button text="Close with results" (tap)="closeWithResult()" class="btn btn-primary m-t-20"></Button>
-</StackLayout>  
+</StackLayout>
 ```
 
 ```typescript
 // hello-view.component.ts
 @Component()
 export class HelloViewComponent extends BaseComponent {
-  title = 'Hello!';
+  title = "Hello!";
   constructor(private viewService: ViewService) {
     super();
   }
 
   ngOnInit() {
-    console.log('HelloViewComponent ngOnInit');
+    console.log("HelloViewComponent ngOnInit");
   }
 
   ngOnDestroy() {
     super.ngOnDestroy();
-    console.log('HelloViewComponent ngOnDestroy');
+    console.log("HelloViewComponent ngOnDestroy");
   }
 
   closeWithResult() {
     this.viewService.togglePopup$.next({
       open: false,
-      result: true
+      result: true,
     });
   }
 }
@@ -281,18 +246,18 @@ Open the popup from the `items.component.html` and pass in the popup options (wh
 ```typescript
 @Component()
 export class ItemsComponent implements OnInit {
-    constructor(private viewService: ViewService) {}
+  constructor(private viewService: ViewService) {}
 
-    openPopup() {
-      this.viewService.togglePopup$.next({
-        open: true,
-        height: screen.mainScreen.heightDIPs/2,
-        cmpType: HelloViewComponent,
-        cmpProps: {
-          title: 'Hello Workshop!'
-        }
-      });
-    }
+  openPopup() {
+    this.viewService.togglePopup$.next({
+      open: true,
+      height: screen.mainScreen.heightDIPs / 2,
+      cmpType: HelloViewComponent,
+      cmpProps: {
+        title: "Hello Workshop!",
+      },
+    });
+  }
 }
 ```
 
@@ -305,13 +270,6 @@ In order for the new component to be injected into the popup, add a `<ng-contain
 ...
 ```
 
-
-
-
-
-
-
-
 <div class="nsw"></div>
 
 ### Exercise 4.4: Add an overlay cover layer
@@ -322,7 +280,7 @@ Add an overlay layer that covers the `page-router-outlet` and lives just under t
 
 ##### Tips
 
-Create a new component and call it `ShadeCoverComponent`. You can use the selector `ns-shade-cover`. Or call these whatever you want, but that's what we'll call ours! 
+Create a new component and call it `ShadeCoverComponent`. You can use the selector `ns-shade-cover`. Or call these whatever you want, but that's what we'll call ours!
 
 #### Review
 
@@ -338,9 +296,7 @@ Create the overlay component
 </GridLayout>
 ```
 
-
 Notice how this setup can be used to cover the gap at bottom which may show through if pan pulls up high enough
-
 
 ```typescript
 @Component()
@@ -353,15 +309,15 @@ export class ShadeCoverComponent extends BaseComponent {
   }
 
   ngOnInit() {
-    this._viewService.togglePopup$.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(options => {
-      if (options.open) {
-        this.show = true;
-      } else if (this._cover) {
-        this.show = false;
-      }
-    });
+    this._viewService.togglePopup$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((options) => {
+        if (options.open) {
+          this.show = true;
+        } else if (this._cover) {
+          this.show = false;
+        }
+      });
   }
 
   loaded(args) {
@@ -386,15 +342,6 @@ Add the component to the root `app.component.html`
 ```
 
 <div class="solution-end"></div>
-
-
-
-
-
-
-
-
-
 
 <div class="nsw"></div>
 
@@ -550,16 +497,7 @@ Trigger animations in the popup component
     }
 ```
 
-
 <div class="solution-end"></div>
-
-
-
-
-
-
-
-
 
 <div class="nsw"></div>
 
@@ -585,7 +523,7 @@ Add a `draggingView` flag to the `ViewService`
 // view.service.ts
 @Injectable()
 export class ViewService {
-    draggingView = false;
+  draggingView = false;
 }
 ```
 
@@ -712,6 +650,5 @@ export class PopupViewComponent extends BaseComponent {
     }
 }
 ```
-
 
 <div class="solution-end"></div>

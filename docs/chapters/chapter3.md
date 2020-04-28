@@ -4,13 +4,9 @@
 
 #### Overview of topics covered
 
-* Timeouts gone bad!
-* Dealing with event bussing app wide
-* Subscription clean up
-
-
-
-
+- Timeouts gone bad!
+- Dealing with event bussing app wide
+- Subscription clean up
 
 > NOTE: You will need to add packaging of `.wav` files into Webpack configuration so the audio files get deployed with the app and bundled with webpack. Open `webpack.config.js` and locate the `plugins` configuration section, specifically the `CopyWebpackPlugin` setup. Add a glob pattern to copy `.wav` files to destination: `{ from: { glob: "**/*.wav" } },`
 
@@ -18,7 +14,7 @@
 
 ### Lesson 3.1: Timeouts gone bad!
 
-While setTimouts are a necessary good in NativeScript apps, when not used properly and not controlled, they could cause some problems in your apps. This is immediately evident when the user interacts with the app while a timeout is happening. 
+While setTimouts are a necessary good in NativeScript apps, when not used properly and not controlled, they could cause some problems in your apps. This is immediately evident when the user interacts with the app while a timeout is happening.
 
 The best (worst) offending example is kicking off a timeout while on one page, and having the user navigate to another page while the timeout callback hasn't been called yet. This is clearly visible if showing a message or alert on the screen, and it's especially noticeable if triggering audio. Here is an example of a pretty bad user experience.
 
@@ -36,7 +32,6 @@ ngOnInit(): void {
     }, 2500);
 }
 ```
-
 
 #### What you're doing
 
@@ -64,31 +59,24 @@ ngOnInit(): void {
 Later, when navigating, perhaps
 
 ```typescript
-clearTimeout(this.timerId)
+clearTimeout(this.timerId);
 ```
 
 ##### Better solution
 
 Use a timer service to manage these timeouts. Assigns GUIDs to components and keep track of them in the service, giving the ability to cancel all associated timeouts at the same time. Also allows single component to have multiple flows.
 
-
 ```typescript
 // home.component.ts - using with TimerService
-    this._timer.start(2500, this._welcomeFlowTimer).done.then(() => {
-      alert('This is where you can find all your home items.');
-      this._timer.start(2500, this._welcomeFlowTimer).done.then(() => {
-        this._audio.play('~/assets/sparkle.wav');
+this._timer.start(2500, this._welcomeFlowTimer).done.then(() => {
+  alert("This is where you can find all your home items.");
+  this._timer.start(2500, this._welcomeFlowTimer).done.then(() => {
+    this._audio.play("~/assets/sparkle.wav");
 
-        alert('Shiny things!');
-      });
-    });
+    alert("Shiny things!");
+  });
+});
 ```
-
-
-
-
-
-
 
 <div class="nsw"></div>
 
@@ -99,21 +87,21 @@ Yes, but that's not all. Since the tab view spans your application, the rest of 
 
 #### What you're doing
 
-You might have guessed by now that we'll be using a service to keep track of the selected tab of the tab view. This is a pattern we've seen before. 
+You might have guessed by now that we'll be using a service to keep track of the selected tab of the tab view. This is a pattern we've seen before.
 
 ```typescript
 // tab.service.ts
 @Injectable()
 export class TabService {
-    indexChanged$: Subject<number> = new Subject();
+  indexChanged$: Subject<number> = new Subject();
 
-    /**
-     * Tab navigation needs some extra helpers to manage UX timing well
-     */
-    onIndexChanged(args) {
-      const tabView = <BottomNavigation>args.object;
-      this.indexChanged$.next(tabView.selectedIndex);
-    }
+  /**
+   * Tab navigation needs some extra helpers to manage UX timing well
+   */
+  onIndexChanged(args) {
+    const tabView = <BottomNavigation>args.object;
+    this.indexChanged$.next(tabView.selectedIndex);
+  }
 }
 ```
 
@@ -123,7 +111,7 @@ The `tabs.component` that hosts the tab view can use the `TabService` to bind th
 // tabs.component.ts
 @Component()
 export class TabsComponent implements OnInit {
-    constructor(public tabService: TabService) {}
+  constructor(public tabService: TabService) {}
 }
 ```
 
@@ -134,21 +122,13 @@ export class TabsComponent implements OnInit {
 
 Any component that needs to know about the tab selection can subscribe to the observable that provides that data.
 
-
-
-
-
-
-
-
 <div class="nsw"></div>
 
 ### Exercise 3.3 Terminate the home flow
 
 ##### Requirements
 
-Implement the `TabService` to manage tab switching, then terminate the flow initiated on the `HomeComponent` when tabs are switched. 
-
+Implement the `TabService` to manage tab switching, then terminate the flow initiated on the `HomeComponent` when tabs are switched.
 
 #### Review
 
@@ -161,11 +141,11 @@ Add the `TabService` implementation for the tab change event.
 ```typescript
 // tab.service.ts
 export class TabService {
-    indexChanged$: Subject<number> = new Subject();
-    public onIndexChanged(args) {
-        const tabView = <BottomNavigation>args.object;
-        this.indexChanged$.next(tabView.selectedIndex);
-    }
+  indexChanged$: Subject<number> = new Subject();
+  public onIndexChanged(args) {
+    const tabView = <BottomNavigation>args.object;
+    this.indexChanged$.next(tabView.selectedIndex);
+  }
 }
 ```
 
@@ -179,23 +159,6 @@ Bind the `selectedIndexChange` event in the `BottomNavigation` component to the 
 ```
 
 <div class="solution-end"></div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 <div class="nsw"></div>
 
@@ -223,46 +186,45 @@ Create a new service called `WindowService` that handles alerts
 // window.service.ts
 @Injectable()
 export class WindowService {
-    private _isAlertOpen = false;
+  private _isAlertOpen = false;
 
-    alert(options: string | nsDialogs.AlertOptions) {
-        return new Promise(resolve => {
-            if (!this._isAlertOpen) {
-                this._isAlertOpen = true;
-                let opt = <nsDialogs.AlertOptions>options;
-                if (typeof options === 'string') {
-                  opt = {
-                    title: 'Alert',
-                    message: options,
-                    okButtonText: 'Ok'
-                  };
-                }
-                nsDialogs.alert(opt).then(
-                    () => {
-                        this.reset(1);
-                        resolve();
-                    },
-                    () => {
-                        this.reset(1);
-                        resolve();
-                    }
-                );
-            }
-        });
-    }
-
-    reset(type: number) {
-        switch (type) {
-            case 1:
-                this._isAlertOpen = false;
-                break;
-            default:
-                this._isAlertOpen = false;
-                break;
+  alert(options: string | nsDialogs.AlertOptions) {
+    return new Promise((resolve) => {
+      if (!this._isAlertOpen) {
+        this._isAlertOpen = true;
+        let opt = <nsDialogs.AlertOptions>options;
+        if (typeof options === "string") {
+          opt = {
+            title: "Alert",
+            message: options,
+            okButtonText: "Ok",
+          };
         }
-    }
-}
+        nsDialogs.alert(opt).then(
+          () => {
+            this.reset(1);
+            resolve();
+          },
+          () => {
+            this.reset(1);
+            resolve();
+          }
+        );
+      }
+    });
+  }
 
+  reset(type: number) {
+    switch (type) {
+      case 1:
+        this._isAlertOpen = false;
+        break;
+      default:
+        this._isAlertOpen = false;
+        break;
+    }
+  }
+}
 ```
 
 ###### Step 2
@@ -281,14 +243,6 @@ Use the new `WindowService` instead of plain old `alert` dialog calls in your `H
 ```
 
 <div class="solution-end"></div>
-
-
-
-
-
-
-
-
 
 <div class="nsw"></div>
 
@@ -362,24 +316,9 @@ Extend the `WindowService` to manage `confirm` dialogs.
 
 <div class="solution-end"></div>
 
-
 #### Discussion
 
 In your group, discuss how you could expand the solution to support queued alerts/confirms so if a few were triggered at same time, they would be queued and not all show up at the same time. A user could handle these dialogs one at a time.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 <div class="nsw"></div>
 
@@ -389,7 +328,7 @@ There is an inherent problem with the `TabService` subscriptions in the previous
 
 #### Discussion
 
-In your group discuss different strategies to unsubscribe. Share examples of techniques you've used in the past and ideas about how you would do it now. 
+In your group discuss different strategies to unsubscribe. Share examples of techniques you've used in the past and ideas about how you would do it now.
 
 #### The Solution
 
@@ -400,7 +339,7 @@ Use a `BaseComponent` abstract class to help with RxJS subs clean up.
 
 export abstract class BaseComponent implements OnDestroy {
   private _destroy$: Subject<any>;
-  
+
   get destroy$() {
     if (!this._destroy$) {
       // Perf optimization:
@@ -426,34 +365,27 @@ Components that need to subscribe can extend `BaseComponent` and have subscripti
 // home.component.ts
 
 export class HomeComponent extends BaseComponent implements OnInit {
-      constructor(private _tabService: TabService) { 
-      super();
+  constructor(private _tabService: TabService) {
+    super();
 
-      this._tabService.indexChanged$.pipe(
+    this._tabService.indexChanged$
+      .pipe(
         takeUntil(this.destroy$),
-          // this fires right when app loads so you could control that situation using skip(1) depending on the type of data flow and ux sequencing you desire
-         skip(1)
-      ).subscribe(index => {
-         if (index === 0) {
-            // do tab 0 stuff here
-         } else {
-            // something else
-         }
-       });
-    }
+        // this fires right when app loads so you could control that situation using skip(1) depending on the type of data flow and ux sequencing you desire
+        skip(1)
+      )
+      .subscribe((index) => {
+        if (index === 0) {
+          // do tab 0 stuff here
+        } else {
+          // something else
+        }
+      });
+  }
 }
 ```
 
->NOTE: For teams using CI builds, if you want to ensure everyone is following this practice, linting could be used to ensure `takeUntil` is used with every subscribe
-
-
-
-
-
-
-
-
-
+> NOTE: For teams using CI builds, if you want to ensure everyone is following this practice, linting could be used to ensure `takeUntil` is used with every subscribe
 
 <div class="nsw"></div>
 
@@ -464,7 +396,3 @@ Discuss with your team how your could extend the timer service to support pause 
 ##### Requirements
 
 Extend timer service to support pause and resume.
-
-
-
-

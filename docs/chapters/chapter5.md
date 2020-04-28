@@ -1,20 +1,12 @@
 ## View Binding Gotchas
 
-
 <div class="nsw"></div>
 
 #### Overview of topics covered
 
-* Binding to methods
-* Tighly scope ngOnChanges
-* getViewById
-
-
-
-
-
-
-
+- Binding to methods
+- Tighly scope ngOnChanges
+- getViewById
 
 <div class="nsw"></div>
 
@@ -70,15 +62,6 @@ This is how you would bind to a pre-computed value instead of using method bindi
     }
 ```
 
-
-
-
-
-
-
-
-
-
 <div class="nsw"></div>
 
 ### Independent Exercise 5.2: Offload the pre-compute to a Worker
@@ -88,13 +71,6 @@ Workers can be used to handle long calculations and the results returned to the 
 ##### Requirements
 
 Precompute bindings and other data for view bindings via Worker to not block UI thread
-
-
-
-
-
-
-
 
 <div class="nsw"></div>
 
@@ -108,9 +84,8 @@ Create a custom component called `ItemLabelComponent` using the `ns-item-label` 
 
 ```xml
     <!-- items.component.html -->
-    <ns-item-label [item]="item"></ns-item-label> 
+    <ns-item-label [item]="item"></ns-item-label>
 ```
-
 
 Here is the row component itself.
 
@@ -125,32 +100,24 @@ Notice how we're using `ngOnChanges` here. This is an example of bad practice, w
 // item-label.component.ts
 @Component()
 export class ItemLabelComponent {
-    @Input() item: Item;
-    showBlue = false;
+  @Input() item: Item;
+  showBlue = false;
 
-    constructor(private itemService: ItemService) {
-      this.itemService.itemLabelCmpCnt++;
-    }
+  constructor(private itemService: ItemService) {
+    this.itemService.itemLabelCmpCnt++;
+  }
 
-    ngOnChanges() {
-        if (this.item.role === "Defender") {
-            this.showBlue = true;
-        }
+  ngOnChanges() {
+    if (this.item.role === "Defender") {
+      this.showBlue = true;
     }
+  }
 }
 ```
 
-
-
-
-
-
-
-
-
 <div class="nsw"></div>
 
-### Lesson 5.4: Tighly scope ngOnChanges
+### Lesson 5.4: Tightly scope ngOnChanges
 
 In the previous lesson, we created a component to abstract away the logic of displaing text so we can avoid binding to a method. BUT, while we had good intentions, we introduced another problem. We're using local component state wrapped inside conditionals within `ngOnChanges`, which is bad practice.
 
@@ -192,15 +159,7 @@ ngOnChanges(changes: SimpleChanges) {
 }
 ```
 
->NOTE: `ngOnChanges` will still be called just as many times, but the inner component property won't be updated unless there actually is a change to the input's property.
-
-
-
-
-
-
-
-
+> NOTE: `ngOnChanges` will still be called just as many times, but the inner component property won't be updated unless there actually is a change to the input's property.
 
 <div class="nsw"></div>
 
@@ -223,25 +182,28 @@ We're going to animate a view in code using the NativeScript animation API by ge
 //items.component.ts
 @Component()
 export class ItemsComponent implements OnInit {
-    ball: StackLayout;
-    showBall = false;
+  ball: StackLayout;
+  showBall = false;
 
-    ngOnInit(): void {
-        this.ball = this.page.getViewById("ball");
-        setTimeout(() => {
-            this.animateBall();
-        }, 2000);
-    }
+  ngOnInit(): void {
+    this.ball = this.page.getViewById("ball");
+    setTimeout(() => {
+      this.animateBall();
+    }, 2000);
+  }
 
-    animateBall() {
-        this.ball
-            .animate({
-                translate: { x: 300, y: 0 },
-                duration: 1000,
-                curve: AnimationCurve.easeIn
-            })
-            .then(() => {}, () => {});
-    }
+  animateBall() {
+    this.ball
+      .animate({
+        translate: { x: 300, y: 0 },
+        duration: 1000,
+        curve: AnimationCurve.easeIn,
+      })
+      .then(
+        () => {},
+        () => {}
+      );
+  }
 }
 ```
 
@@ -271,47 +233,40 @@ If combining NativeScript's access of a view with Angular, use the view's `loade
     </GridLayout>
 ```
 
-
 ```typescript
 //items.component.ts
 @Component()
 export class ItemsComponent implements OnInit {
+  ball: StackLayout;
+  showBall = false;
 
-    ball: StackLayout;
-    showBall = false;
-
-    ngOnInit(): void {
-        setTimeout(() => {
-            this.animateBall();
-        }, 2000);
-    }
-
-    loadedBall(args: EventData) {
-      this.ball = <StackLayout>args.object;
+  ngOnInit(): void {
+    setTimeout(() => {
       this.animateBall();
-    }
+    }, 2000);
+  }
 
-    animateBall() {
-        this.ball
-            .animate({
-                translate: { x: 300, y: 0 },
-                duration: 1000,
-                curve: AnimationCurve.easeIn
-            })
-            .then(() => {}, () => {});
-    }
+  loadedBall(args: EventData) {
+    this.ball = <StackLayout>args.object;
+    this.animateBall();
+  }
+
+  animateBall() {
+    this.ball
+      .animate({
+        translate: { x: 300, y: 0 },
+        duration: 1000,
+        curve: AnimationCurve.easeIn,
+      })
+      .then(
+        () => {},
+        () => {}
+      );
+  }
 }
 ```
 
->NOTE: `loaded` WILL retrigger on app suspend/resume
-
-
-
-
-
-
-
-
+> NOTE: `loaded` WILL retrigger on app suspend/resume
 
 <div class="nsw"></div>
 
@@ -320,4 +275,3 @@ export class ItemsComponent implements OnInit {
 ##### Requirements
 
 The `loaded` event of a view will be retriggered whenever your app suspends and resumes. So if you want to prevent the animation to be triggered multiple times, you have to handle it. Ensure that the animation isn't triggered mutiple times.
-
