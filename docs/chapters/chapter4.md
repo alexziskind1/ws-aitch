@@ -129,7 +129,8 @@ export class PopupViewComponent extends BaseComponent {
             }
           }
           this._toggleDisplay(true);
-        } else if (this._component) {
+        } // if (this._component) - check for existence of component after loading it
+        else {
           this._toggleDisplay(false);
         }
       });
